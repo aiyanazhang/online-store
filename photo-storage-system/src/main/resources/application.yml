@@ -1,0 +1,109 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: photo-storage-system
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+      file-size-threshold: 2KB
+      location: ${java.io.tmpdir}
+
+  datasource:
+    url: jdbc:h2:mem:photodb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterAccess=10m
+
+# 文件存储配置
+storage:
+  # 上传目录
+  upload-dir: ./uploads
+  # 缩略图目录
+  thumbnail-dir: ./uploads/thumbnails
+  # 允许的文件类型
+  allowed-types: image/jpeg,image/png,image/gif,image/webp,image/bmp
+  # 文件扩展名白名单
+  allowed-extensions: jpg,jpeg,png,gif,webp,bmp
+  # 最大文件大小 (MB)
+  max-file-size: 10
+  # 缩略图宽度
+  thumbnail-width: 300
+  # 缩略图高度
+  thumbnail-height: 300
+  # 是否生成缩略图
+  generate-thumbnail: true
+  # 清理过期文件间隔 (天)
+  cleanup-interval-days: 30
+  # 最大存储容量 (GB)
+  max-storage-size: 10
+
+# 安全配置
+security:
+  # 防盗链开关
+  anti-hotlink-enabled: true
+  # 允许的Referer域名
+  allowed-referers: localhost,127.0.0.1
+  # API密钥
+  api-key: ${PHOTO_API_KEY:default-secret-key-change-in-production}
+  # 请求频率限制 (每分钟)
+  rate-limit: 100
+
+# 日志配置
+logging:
+  level:
+    com.photostorage: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/photo-storage.log
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# OpenAPI配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
